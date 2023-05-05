@@ -1,113 +1,95 @@
 import streamlit as st
+from h import dbconnection
+mydb, mycursor = dbconnection()
 
-import mysql.connector
-mydb = mysql.connector.connect(user='root', password='12345', host='localhost', database='CUST_MANAGEMENT')
-mycursor = mydb.cursor()
-def set_ph():
-    CONTACT = st.text_input("Enter new phone number", "enter the number")
-    if CONTACT.isdigit():
-        sql = "UPDATE cust_info SET PH_NUMBER = (%s) WHERE cust_id = (%s)"
-        values = (CONTACT, ID)
-        mycursor.execute(sql, values)
-        mydb.commit()
-        st.write("phone number updated successfully")
-    else:
-        st.write("enter proper contact")
+st.header("Edit Order Details")
 
-
-def set_add():
-    new_address = st.text_input("Enter new address", "enter address")
-    sql = "UPDATE cust_info SET address = (%s) WHERE cust_id = (%s)"
-    values = (new_address, ID)
-    mycursor.execute(sql, values)
-    mydb.commit()
-
-
-def set_pin():
-    CONTACT = st.text_input("Enter new pincode number", "enter the number")
-    if CONTACT.isdigit():
-        sql = "UPDATE cust_info SET PINCODE = (%s) WHERE cust_id = (%s)"
-        values = (CONTACT, ID)
-        mycursor.execute(sql, values)
-        mydb.commit()
-        st.write("Pincode number updated successfully")
-    else:
-        st.write("enter proper pin")
-
-
-st.header("Customer Order Management System")
-
-nav = st.sidebar.radio("Please Select..!!!", ["Select", "Customer", "Orders"])
-
-if nav == "Customer":
-    select = st.selectbox("Customer: ", ['Select Customer Info', "Update Customer Info"])
-    if select == "Update Customer Info":
-        check = st.selectbox("select option: ",
-                             ['Select','Update Customer Address', "Update Customer Phone number", 'Update Customer Pin Code'])
-
-        if check == 'Update Customer Address':
-            ID = st.text_input("Enter Customer ID", "enter id")
-            if ID.isdigit():
-                sql = "SELECT cust_id FROM cust_info WHERE cust_id = (%s)"
-                values = (ID,)
-                mycursor.execute(sql, values)
-                result = mycursor.fetchall()
-
-                if len(result) == 1 and result[0][0] == int(ID):
-                    set_add()
-                    st.write("Address updated successfully")
-                else:
-                    st.write("ID does not exist")
-
-        if check == "Update Customer Phone number":
-            ID = st.text_input("Enter Customer ID", "enter id")
-            if ID.isdigit():
-                sql = "SELECT cust_id FROM cust_info WHERE cust_id = (%s)"
-                values = (ID,)
-                mycursor.execute(sql, values)
-                result = mycursor.fetchall()
-
-                if len(result) == 1 and result[0][0] == int(ID):
-                    set_ph()
-                else:
-                    st.write("ID does not exist")
-
-        if check == 'Update Customer Pin Code':
-            ID = st.text_input("Enter Customer ID", "enter id")
-            if ID.isdigit():
-                sql = "SELECT cust_id FROM cust_info WHERE cust_id = (%s)"
-                values = (ID,)
-                mycursor.execute(sql, values)
-                result = mycursor.fetchall()
-                if len(result) == 1 and result[0][0] == int(ID):
-                    set_pin()
-elif nav == "Orders":
-    up_selection = st.selectbox("Update Order Details", ["Select", "Product Category", "Order Status"])
-
-    if up_selection == "Product Category":
-
-        up_id = st.text_input('Enter your order ID')
-        p_category = st.text_input("Enter Product Category")
-        if st.button("Submit"):  # check if id exist
-            query = ("UPDATE cust_orders SET  product= %s WHERE order_id = %s")
-            value = (p_category, up_id)
-            mycursor.execute(query, value)
-            mydb.commit()
+tab1, tab2, tab3 =st.tabs([ "Product Category", "To City", "Order Status"])
+with tab1 :
+    ID = st.text_input("Enter Order ID", placeholder="Order ID", key=1)
+    new = st.selectbox("New Product Category", ["Select Product Category", "Electronics", "Textile", "Furniture", "Medical", "Others"])
+    flag = True
+    if st.button("Update", key='b1'):
+        if ID.isdigit():
+            sql = "SELECT order_id FROM cust_orders"
+            mycursor.execute(sql)
             rw = mycursor.rowcount
-            msg = st.success(str(rw) + " Updated Successfully")  # not showing properly check it
-            mycursor.close()
-            mydb.close()
-    elif up_selection == "Order Status":
-        up_id = st.text_input('Enter customer order ID')
-        # p_status = st.text_input("Enter order status")
-        p_status = st.selectbox("customer status", ['select', "Shipped", "Delivered", "cancelled"])
-        if st.button("Submit"):
-            query = ("UPDATE cust_orders SET ord_status = %s WHERE order_id = %s")
-            value = (p_status, up_id)
-            mycursor.execute(query, value)
-            mydb.commit()
-            rw = mycursor.rowcount
-            msg = st.success(str(rw) + ' customer order are ' + p_status)
-            mycursor.close()
-            mydb.close()
+            result = mycursor.fetchall()
+            for i in result:
+                if int(ID) in i:
+                    sql = "UPDATE cust_orders SET product_category = %s WHERE order_id = %s"
+                    values = (new, int(ID))
+                    mycursor.execute(sql, values)
+                    mydb.commit()
+                    mycursor.close()
+                    mydb.close()
+                    st.success("Product Category Updated Successfully")
+                    flag = False
+                    break
 
+            if flag:
+                st.error("Order Details Not Exist")
+        elif ID == "" or new == "":
+            st.error("All Fields are Mandatory")
+        elif ID.isalnum() or new.isalnum():
+            st.error("ID should be Digit and Name should not be digit")
+
+
+with tab2 :
+    ID = st.text_input("Enter Order ID", placeholder="Order ID", key=2)
+    new = st.text_input("Enter To City", placeholder="To City")
+    flag = True
+    if st.button("Update", key='b2'):
+        if ID.isdigit():
+            sql = "SELECT order_id FROM cust_orders"
+            mycursor.execute(sql)
+            rw = mycursor.rowcount
+            result = mycursor.fetchall()
+            for i in result:
+                if int(ID) in i:
+                    sql = "UPDATE cust_orders SET to_city = %s WHERE order_id = %s"
+                    values = (new, int(ID))
+                    mycursor.execute(sql, values)
+                    mydb.commit()
+                    mycursor.close()
+                    mydb.close()
+                    st.success("To City / Destination City Updated Successfully")
+                    flag = False
+                    break
+
+            if flag:
+                st.error("Order Details Not Exist")
+        elif ID == "" or new == "":
+            st.error("All Fields are Mandatory")
+        elif ID.isalnum() or new.isalnum():
+            st.error("ID should be Digit and Name should not be digit")
+
+with tab3:
+        ID = st.text_input("Enter Order ID", placeholder="Order ID", key=3)
+        new = st.selectbox("Order Status", ["Select Order Status", "In Transit", "Shipped", "Delivered", "Cancelled", "Out for Delivery"])
+
+        Flag = True
+        if st.button("Update", key='b3'):
+            if ID.isdigit():
+                sql = "SELECT order_id FROM cust_orders"
+                mycursor.execute(sql)
+                rw = mycursor.rowcount
+                result = mycursor.fetchall()
+                for i in result:
+                    if int(ID) in i:
+                        sql = "UPDATE cust_orders SET Ord_status = %s WHERE order_id = %s"
+                        values = (new, int(ID))
+                        mycursor.execute(sql, values)
+                        mydb.commit()
+                        mycursor.close()
+                        mydb.close()
+                        st.success("Order Status Updated Successfully")
+                        Flag = False
+                        break
+
+                if Flag:
+                    st.error("Order Details Not Exist")
+            elif ID == "" or new == "":
+                st.error("All Fields are Mandatory")
+            elif ID.isalnum() or new.isalnum():
+                st.error("ID should be Digit and Name should not be digit")
