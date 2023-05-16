@@ -18,13 +18,12 @@ def add_bg_from_url():
 
 
 add_bg_from_url()
-
 mydb, mycursor = dbconnection()
-st.header("Order Details")
-query=("select * from CUST_ORDERS")
+st.header("Customer Details")
+query=("select CUST_ID,CUST_NAME,PH_NUMBER,ADDRESS, STATE, PINCODE from CUST_INFO")
 mycursor.execute(query)
 df = pd.DataFrame(mycursor)
-df = df.rename(columns={0: 'ORDER_ID',1:'PRODUCT CATEGORY',2:'FROM CITY', 3:'TO CITY',4:'0RDER_DATE',5:'SHIPPED_DATE',6:'ORDDER STATUS',7:'CUSTOMER ID'})
+df = df.rename(columns={0: 'CUSTOMER ID', 1: 'CUSTOMER NAME', 2: 'MOBILE NUMBER', 3: 'ADDRESS', 4: 'STATE', 5: 'PINCODE'})
 
 gb = GridOptionsBuilder.from_dataframe(df)
 
